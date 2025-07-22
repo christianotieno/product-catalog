@@ -2,7 +2,6 @@ import React, { createContext, useContext, useReducer, useEffect, ReactNode } fr
 import { User, AuthRequest, AuthResponse } from '../types';
 import { authService } from '../services/authService';
 
-// Auth state interface
 interface AuthState {
   user: User | null;
   token: string | null;
@@ -11,7 +10,6 @@ interface AuthState {
   error: string | null;
 }
 
-// Auth action types
 type AuthAction =
   | { type: 'AUTH_START' }
   | { type: 'AUTH_SUCCESS'; payload: { user: User; token: string } }
@@ -19,7 +17,6 @@ type AuthAction =
   | { type: 'AUTH_LOGOUT' }
   | { type: 'CLEAR_ERROR' };
 
-// Initial state
 const initialState: AuthState = {
   user: null,
   token: localStorage.getItem('token'),
@@ -28,7 +25,6 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Auth reducer
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case 'AUTH_START':
@@ -74,7 +70,6 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   }
 };
 
-// Auth context interface
 interface AuthContextType extends AuthState {
   login: (credentials: AuthRequest) => Promise<void>;
   register: (credentials: AuthRequest) => Promise<void>;
@@ -83,34 +78,27 @@ interface AuthContextType extends AuthState {
   isAdmin: () => boolean;
 }
 
-// Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Auth provider props
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Auth provider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check if user is admin
   const isAdmin = (): boolean => {
     return state.user?.role === 'ADMIN';
   };
 
-  // Login function
   const login = async (credentials: AuthRequest): Promise<void> => {
     try {
       dispatch({ type: 'AUTH_START' });
       
       const response: AuthResponse = await authService.login(credentials);
       
-      // Store token in localStorage
       localStorage.setItem('token', response.token);
       
-      // Create user object
       const user: User = {
         id: response.userId,
         email: response.email,
@@ -129,17 +117,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Register function
   const register = async (credentials: AuthRequest): Promise<void> => {
     try {
       dispatch({ type: 'AUTH_START' });
       
       const response: AuthResponse = await authService.register(credentials);
       
-      // Store token in localStorage
       localStorage.setItem('token', response.token);
       
-      // Create user object
       const user: User = {
         id: response.userId,
         email: response.email,
@@ -158,24 +143,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Logout function
   const logout = (): void => {
     localStorage.removeItem('token');
     dispatch({ type: 'AUTH_LOGOUT' });
   };
 
-  // Clear error function
   const clearError = (): void => {
     dispatch({ type: 'CLEAR_ERROR' });
   };
 
-  // Check token validity on app start
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && !state.isAuthenticated) {
-      // You could add a token validation endpoint here
-      // For now, we'll just check if token exists
-      // In a real app, you'd validate the token with the backend
+      const validateStoredToken = async () => {
+        try {
+          dispatch({ type: 'AUTH_START' });
+          const response: AuthResponse = await authService.validateToken();
+          
+          const user: User = {
+            id: response.userId!,
+            email: response.email!,
+            role: response.role!,
+            createdAt: new Date().toISOString(),
+          };
+          
+          dispatch({ 
+            type: 'AUTH_SUCCESS', 
+            payload: { user, token: response.token! } 
+          });
+        } catch (error) {
+          localStorage.removeItem('token');
+          dispatch({ type: 'AUTH_LOGOUT' });
+        }
+      };
+      
+      validateStoredToken();
     }
   }, [state.isAuthenticated]);
 
@@ -195,7 +197,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-// Custom hook to use auth context
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {

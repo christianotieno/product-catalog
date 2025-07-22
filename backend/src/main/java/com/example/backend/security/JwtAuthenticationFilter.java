@@ -48,13 +48,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = null;
             String jwt = null;
 
-            // Extract JWT token from Authorization header
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 jwt = authorizationHeader.substring(7);
                 username = jwtUtil.extractUsername(jwt);
             }
 
-            // Set up authentication if token is valid and user is not already authenticated
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 

@@ -1,4 +1,3 @@
-// User types
 export interface User {
   id: number;
   email: string;
@@ -6,7 +5,6 @@ export interface User {
   createdAt: string;
 }
 
-// Product types
 export interface Product {
   id: number;
   name: string;
@@ -21,7 +19,6 @@ export interface Product {
   formattedPrice: string;
 }
 
-// Authentication types
 export interface AuthRequest {
   email: string;
   password: string;
@@ -36,7 +33,6 @@ export interface AuthResponse {
   message: string;
 }
 
-// Product request types
 export interface ProductRequest {
   name: string;
   description?: string;
@@ -45,7 +41,6 @@ export interface ProductRequest {
   stockQuantity: number;
 }
 
-// API Response types
 export interface ApiResponse<T> {
   data: T;
   message?: string;
@@ -62,7 +57,6 @@ export interface PaginatedResponse<T> {
   last: boolean;
 }
 
-// Search and filter types
 export interface ProductSearchParams {
   name?: string;
   category?: string;
@@ -75,7 +69,6 @@ export interface ProductSearchParams {
   sortDir?: 'asc' | 'desc';
 }
 
-// Form validation types
 export interface LoginFormData {
   email: string;
   password: string;
@@ -95,7 +88,6 @@ export interface ProductFormData {
   stockQuantity: number;
 }
 
-// Error types
 export interface ApiError {
   status: number;
   error: string;
@@ -104,7 +96,6 @@ export interface ApiError {
   timestamp: string;
 }
 
-// Dashboard types
 export interface DashboardStats {
   totalProducts: number;
   totalUsers: number;
@@ -112,7 +103,6 @@ export interface DashboardStats {
   categories: string[];
 }
 
-// User management types
 export interface UserUpdateRequest {
   role: 'USER' | 'ADMIN';
 } 

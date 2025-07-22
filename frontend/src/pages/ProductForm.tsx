@@ -9,10 +9,6 @@ import {
   Card,
   CardContent,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useProduct } from '../contexts/ProductContext';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -26,7 +26,7 @@ import { Product } from '../types';
 const Products: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { products, isLoading, fetchProducts, deleteProduct } = useProduct();
+  const { products, isLoading, error, fetchProducts, deleteProduct } = useProduct();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
@@ -38,20 +38,24 @@ const Products: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         await deleteProduct(id);
-      } catch (error) {
-        console.error('Failed to delete product:', error);
+      } catch (deleteError) {
+        console.error('Failed to delete product:', deleteError);
       }
     }
   };
 
-  const filteredProducts = products.filter((product: Product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || product.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredProducts = useMemo(() => {
+    return products.filter((product: Product) => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = !categoryFilter || product.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchTerm, categoryFilter]);
 
-  const categories = Array.from(new Set(products.map((p: Product) => p.category).filter(Boolean)));
+  const categories = useMemo(() => {
+    return Array.from(new Set(products.map((p: Product) => p.category).filter(Boolean)));
+  }, [products]);
 
   return (
     <Container maxWidth="lg">
@@ -101,8 +105,14 @@ const Products: React.FC = () => {
         </Grid>
       </Box>
 
-      {isLoading ? (
-        <Typography>Loading products...</Typography>
+      {isLoading && products.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+          <Typography>Loading products...</Typography>
+        </Box>
+      ) : error ? (
+        <Typography color="error" align="center">
+          Error loading products: {error}
+        </Typography>
       ) : filteredProducts.length > 0 ? (
         <Grid container spacing={3}>
           {filteredProducts.map((product: Product) => (
@@ -177,4 +187,4 @@ const Products: React.FC = () => {
   );
 };
 
-export default Products; 
+export default React.memo(Products); 

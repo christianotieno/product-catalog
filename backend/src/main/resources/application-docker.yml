@@ -16,8 +16,7 @@ spring:
   
   sql:
     init:
-      mode: always
-      data-locations: classpath:data.sql
+      mode: never
 
 server:
   port: 8080

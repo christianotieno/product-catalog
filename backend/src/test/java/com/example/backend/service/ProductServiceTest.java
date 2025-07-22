@@ -61,13 +61,10 @@ class ProductServiceTest {
 
     @Test
     void createProduct_Success() {
-        // Arrange
         when(productRepository.save(any(Product.class))).thenReturn(testProduct);
 
-        // Act
         ProductResponse result = productService.createProduct(testProductRequest);
 
-        // Assert
         assertNotNull(result);
         assertEquals(testProduct.getName(), result.getName());
         assertEquals(testProduct.getPrice(), result.getPrice());
@@ -78,17 +75,14 @@ class ProductServiceTest {
 
     @Test
     void createProduct_ThrowsException() {
-        // Arrange
         when(productRepository.save(any(Product.class))).thenThrow(new RuntimeException("Database error"));
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> productService.createProduct(testProductRequest));
         verify(productRepository, times(1)).save(any(Product.class));
     }
 
     @Test
     void getAllProducts_Success() {
-        // Arrange
         Product product2 = new Product();
         product2.setId(2L);
         product2.setName("Test Product 2");
@@ -99,10 +93,8 @@ class ProductServiceTest {
         List<Product> products = Arrays.asList(testProduct, product2);
         when(productRepository.findAll()).thenReturn(products);
 
-        // Act
         List<ProductResponse> result = productService.getAllProducts();
 
-        // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(testProduct.getName(), result.get(0).getName());
@@ -112,13 +104,10 @@ class ProductServiceTest {
 
     @Test
     void getProductById_Success() {
-        // Arrange
         when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
 
-        // Act
         Optional<ProductResponse> result = productService.getProductById(1L);
 
-        // Assert
         assertTrue(result.isPresent());
         assertEquals(testProduct.getName(), result.get().getName());
         verify(productRepository, times(1)).findById(1L);
@@ -126,20 +115,16 @@ class ProductServiceTest {
 
     @Test
     void getProductById_NotFound() {
-        // Arrange
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // Act
         Optional<ProductResponse> result = productService.getProductById(999L);
 
-        // Assert
         assertFalse(result.isPresent());
         verify(productRepository, times(1)).findById(999L);
     }
 
     @Test
     void updateProduct_Success() {
-        // Arrange
         ProductRequest updateRequest = new ProductRequest();
         updateRequest.setName("Updated Product");
         updateRequest.setDescription("Updated Description");
@@ -158,10 +143,8 @@ class ProductServiceTest {
         when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
         when(productRepository.save(any(Product.class))).thenReturn(updatedProduct);
 
-        // Act
         ProductResponse result = productService.updateProduct(1L, updateRequest);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Updated Product", result.getName());
         assertEquals(new BigDecimal("199.99"), result.getPrice());
@@ -173,10 +156,8 @@ class ProductServiceTest {
 
     @Test
     void updateProduct_NotFound() {
-        // Arrange
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> productService.updateProduct(999L, testProductRequest));
         verify(productRepository, times(1)).findById(999L);
         verify(productRepository, never()).save(any(Product.class));
@@ -184,23 +165,18 @@ class ProductServiceTest {
 
     @Test
     void deleteProduct_Success() {
-        // Arrange
         when(productRepository.existsById(1L)).thenReturn(true);
 
-        // Act
         productService.deleteProduct(1L);
 
-        // Assert
         verify(productRepository, times(1)).existsById(1L);
         verify(productRepository, times(1)).deleteById(1L);
     }
 
     @Test
     void deleteProduct_NotFound() {
-        // Arrange
         when(productRepository.existsById(999L)).thenReturn(false);
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> productService.deleteProduct(999L));
         verify(productRepository, times(1)).existsById(999L);
         verify(productRepository, never()).deleteById(any());
@@ -208,7 +184,6 @@ class ProductServiceTest {
 
     @Test
     void getProductsByCategory_Success() {
-        // Arrange
         Product product2 = new Product();
         product2.setId(2L);
         product2.setName("Electronics Product 2");
@@ -219,10 +194,8 @@ class ProductServiceTest {
         List<Product> electronicsProducts = Arrays.asList(testProduct, product2);
         when(productRepository.findByCategory("Electronics")).thenReturn(electronicsProducts);
 
-        // Act
         List<ProductResponse> result = productService.getProductsByCategory("Electronics");
 
-        // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals("Electronics", result.get(0).getCategory());
@@ -232,14 +205,11 @@ class ProductServiceTest {
 
     @Test
     void searchProductsByName_Success() {
-        // Arrange
         List<Product> searchResults = Arrays.asList(testProduct);
         when(productRepository.findByNameContainingIgnoreCase("Test")).thenReturn(searchResults);
 
-        // Act
         List<ProductResponse> result = productService.searchProductsByName("Test");
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Test Product", result.get(0).getName());
@@ -248,7 +218,6 @@ class ProductServiceTest {
 
     @Test
     void getLowStockProducts_Success() {
-        // Arrange
         Product lowStockProduct = new Product();
         lowStockProduct.setId(3L);
         lowStockProduct.setName("Low Stock Product");
@@ -257,10 +226,8 @@ class ProductServiceTest {
         List<Product> lowStockProducts = Arrays.asList(lowStockProduct);
         when(productRepository.findLowStockProducts()).thenReturn(lowStockProducts);
 
-        // Act
         List<ProductResponse> result = productService.getLowStockProducts();
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.get(0).isLowStock());
@@ -269,7 +236,6 @@ class ProductServiceTest {
 
     @Test
     void getProductsInStock_Success() {
-        // Arrange
         Product inStockProduct = new Product();
         inStockProduct.setId(4L);
         inStockProduct.setName("In Stock Product");
@@ -278,10 +244,8 @@ class ProductServiceTest {
         List<Product> inStockProducts = Arrays.asList(inStockProduct);
         when(productRepository.findByStockQuantityGreaterThan(0)).thenReturn(inStockProducts);
 
-        // Act
         List<ProductResponse> result = productService.getProductsInStock();
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.get(0).isInStock());
@@ -290,14 +254,11 @@ class ProductServiceTest {
 
     @Test
     void updateStock_IncreaseStock_Success() {
-        // Arrange
         when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
         when(productRepository.save(any(Product.class))).thenReturn(testProduct);
 
-        // Act
         ProductResponse result = productService.updateStock(1L, 5);
 
-        // Assert
         assertNotNull(result);
         verify(productRepository, times(1)).findById(1L);
         verify(productRepository, times(1)).save(any(Product.class));
@@ -305,14 +266,11 @@ class ProductServiceTest {
 
     @Test
     void updateStock_DecreaseStock_Success() {
-        // Arrange
         when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
         when(productRepository.save(any(Product.class))).thenReturn(testProduct);
 
-        // Act
         ProductResponse result = productService.updateStock(1L, -3);
 
-        // Assert
         assertNotNull(result);
         verify(productRepository, times(1)).findById(1L);
         verify(productRepository, times(1)).save(any(Product.class));
@@ -320,10 +278,8 @@ class ProductServiceTest {
 
     @Test
     void updateStock_ProductNotFound() {
-        // Arrange
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> productService.updateStock(999L, 5));
         verify(productRepository, times(1)).findById(999L);
         verify(productRepository, never()).save(any(Product.class));
@@ -331,14 +287,11 @@ class ProductServiceTest {
 
     @Test
     void getAllCategories_Success() {
-        // Arrange
         List<String> categories = Arrays.asList("Electronics", "Sports", "Books");
         when(productRepository.findAllCategories()).thenReturn(categories);
 
-        // Act
         List<String> result = productService.getAllCategories();
 
-        // Assert
         assertNotNull(result);
         assertEquals(3, result.size());
         assertTrue(result.contains("Electronics"));
@@ -349,13 +302,10 @@ class ProductServiceTest {
 
     @Test
     void countProductsByCategory_Success() {
-        // Arrange
         when(productRepository.countByCategory("Electronics")).thenReturn(5L);
 
-        // Act
         long result = productService.countProductsByCategory("Electronics");
 
-        // Assert
         assertEquals(5L, result);
         verify(productRepository, times(1)).countByCategory("Electronics");
     }

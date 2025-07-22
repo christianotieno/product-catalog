@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
 import { Product, ProductRequest, ProductSearchParams, PaginatedResponse } from '../types';
 import { productService } from '../services/productService';
 
-// Product state interface
 interface ProductState {
   products: Product[];
   paginatedProducts: PaginatedResponse<Product> | null;
@@ -13,7 +12,6 @@ interface ProductState {
   searchParams: ProductSearchParams;
 }
 
-// Product action types
 type ProductAction =
   | { type: 'PRODUCTS_LOADING' }
   | { type: 'PRODUCTS_SUCCESS'; payload: Product[] }
@@ -27,7 +25,6 @@ type ProductAction =
   | { type: 'SET_SEARCH_PARAMS'; payload: ProductSearchParams }
   | { type: 'CLEAR_ERROR' };
 
-// Initial state
 const initialState: ProductState = {
   products: [],
   paginatedProducts: null,
@@ -43,7 +40,6 @@ const initialState: ProductState = {
   },
 };
 
-// Product reducer
 const productReducer = (state: ProductState, action: ProductAction): ProductState => {
   switch (action.type) {
     case 'PRODUCTS_LOADING':
@@ -126,9 +122,7 @@ const productReducer = (state: ProductState, action: ProductAction): ProductStat
   }
 };
 
-// Product context interface
 interface ProductContextType extends ProductState {
-  // Product operations
   fetchProducts: (params?: ProductSearchParams) => Promise<void>;
   fetchProduct: (id: number) => Promise<void>;
   createProduct: (product: ProductRequest) => Promise<void>;
@@ -136,38 +130,30 @@ interface ProductContextType extends ProductState {
   deleteProduct: (id: number) => Promise<void>;
   fetchCategories: () => Promise<void>;
   
-  // Search and filter operations
   searchProducts: (params: ProductSearchParams) => Promise<void>;
   setSearchParams: (params: Partial<ProductSearchParams>) => void;
   
-  // Utility functions
   clearError: () => void;
   clearSelectedProduct: () => void;
 }
 
-// Create context
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
-// Product provider props
 interface ProductProviderProps {
   children: ReactNode;
 }
 
-// Product provider component
 export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(productReducer, initialState);
 
-  // Fetch all products
-  const fetchProducts = async (params?: ProductSearchParams): Promise<void> => {
+  const fetchProducts = useCallback(async (params?: ProductSearchParams): Promise<void> => {
     try {
       dispatch({ type: 'PRODUCTS_LOADING' });
       
-      if (params?.page !== undefined) {
-        // Fetch paginated products
+      if (params?.page !== undefined) { 
         const response = await productService.getProductsPaginated(params);
         dispatch({ type: 'PRODUCTS_PAGINATED_SUCCESS', payload: response });
       } else {
-        // Fetch all products
         const products = await productService.getProducts();
         dispatch({ type: 'PRODUCTS_SUCCESS', payload: products });
       }
@@ -176,10 +162,9 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       dispatch({ type: 'PRODUCTS_FAILURE', payload: errorMessage });
       throw error;
     }
-  };
+  }, []);
 
-  // Fetch single product
-  const fetchProduct = async (id: number): Promise<void> => {
+  const fetchProduct = useCallback(async (id: number): Promise<void> => {
     try {
       dispatch({ type: 'PRODUCTS_LOADING' });
       const product = await productService.getProduct(id);
@@ -189,10 +174,9 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       dispatch({ type: 'PRODUCTS_FAILURE', payload: errorMessage });
       throw error;
     }
-  };
+  }, []);
 
-  // Create product
-  const createProduct = async (product: ProductRequest): Promise<void> => {
+  const createProduct = useCallback(async (product: ProductRequest): Promise<void> => {
     try {
       dispatch({ type: 'PRODUCTS_LOADING' });
       const createdProduct = await productService.createProduct(product);
@@ -202,10 +186,9 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       dispatch({ type: 'PRODUCTS_FAILURE', payload: errorMessage });
       throw error;
     }
-  };
+  }, []);
 
-  // Update product
-  const updateProduct = async (id: number, product: ProductRequest): Promise<void> => {
+  const updateProduct = useCallback(async (id: number, product: ProductRequest): Promise<void> => {
     try {
       dispatch({ type: 'PRODUCTS_LOADING' });
       const updatedProduct = await productService.updateProduct(id, product);
@@ -215,10 +198,9 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       dispatch({ type: 'PRODUCTS_FAILURE', payload: errorMessage });
       throw error;
     }
-  };
+  }, []);
 
-  // Delete product
-  const deleteProduct = async (id: number): Promise<void> => {
+  const deleteProduct = useCallback(async (id: number): Promise<void> => {
     try {
       dispatch({ type: 'PRODUCTS_LOADING' });
       await productService.deleteProduct(id);
@@ -228,10 +210,9 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       dispatch({ type: 'PRODUCTS_FAILURE', payload: errorMessage });
       throw error;
     }
-  };
+  }, []);
 
-  // Fetch categories
-  const fetchCategories = async (): Promise<void> => {
+  const fetchCategories = useCallback(async (): Promise<void> => {
     try {
       dispatch({ type: 'PRODUCTS_LOADING' });
       const categories = await productService.getCategories();
@@ -241,10 +222,9 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       dispatch({ type: 'PRODUCTS_FAILURE', payload: errorMessage });
       throw error;
     }
-  };
+  }, []);
 
-  // Search products
-  const searchProducts = async (params: ProductSearchParams): Promise<void> => {
+  const searchProducts = useCallback(async (params: ProductSearchParams): Promise<void> => {
     try {
       dispatch({ type: 'PRODUCTS_LOADING' });
       const products = await productService.searchProducts(params);
@@ -254,22 +234,19 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       dispatch({ type: 'PRODUCTS_FAILURE', payload: errorMessage });
       throw error;
     }
-  };
+  }, []);
 
-  // Set search parameters
-  const setSearchParams = (params: Partial<ProductSearchParams>): void => {
+  const setSearchParams = useCallback((params: Partial<ProductSearchParams>): void => {
     dispatch({ type: 'SET_SEARCH_PARAMS', payload: params });
-  };
+  }, []);
 
-  // Clear error
-  const clearError = (): void => {
+  const clearError = useCallback((): void => {
     dispatch({ type: 'CLEAR_ERROR' });
-  };
+  }, []);
 
-  // Clear selected product
-  const clearSelectedProduct = (): void => {
+  const clearSelectedProduct = useCallback((): void => {
     dispatch({ type: 'PRODUCT_SUCCESS', payload: null as any });
-  };
+  }, []);
 
   const value: ProductContextType = {
     ...state,
@@ -292,7 +269,6 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   );
 };
 
-// Custom hook to use product context
 export const useProduct = (): ProductContextType => {
   const context = useContext(ProductContext);
   if (context === undefined) {

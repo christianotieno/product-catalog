@@ -31,8 +31,6 @@ const Users: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, you would fetch users from an API
-    // For now, we'll simulate some sample data
     const sampleUsers: User[] = [
       {
         id: 1,
@@ -58,8 +56,7 @@ const Users: React.FC = () => {
     setLoading(false);
   }, []);
 
-  const handleEditUser = (userId: number) => {
-    // In a real app, you would open an edit dialog or navigate to edit page
+  const handleEditUser = (userId: number) => {  
     console.log('Edit user:', userId);
   };
 

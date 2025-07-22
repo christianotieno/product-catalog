@@ -15,7 +15,6 @@ import Users from './pages/Users';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import AdminRoute from './components/Auth/AdminRoute';
 
-// Create Material-UI theme
 const theme = createTheme({
   palette: {
     primary: {
@@ -78,11 +77,9 @@ function App() {
           <Router>
             <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
               <Routes>
-                {/* Public routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 
-                {/* Protected routes */}
                 <Route path="/" element={
                   <ProtectedRoute>
                     <Layout />
@@ -93,7 +90,6 @@ function App() {
                   <Route path="products" element={<Products />} />
                   <Route path="products/:id" element={<ProductDetail />} />
                   
-                  {/* Admin routes */}
                   <Route path="products/new" element={
                     <AdminRoute>
                       <ProductForm />
@@ -111,7 +107,6 @@ function App() {
                   } />
                 </Route>
                 
-                {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </Box>

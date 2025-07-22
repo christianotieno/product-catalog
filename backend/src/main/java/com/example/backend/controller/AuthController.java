@@ -4,6 +4,7 @@ import com.example.backend.dto.AuthRequest;
 import com.example.backend.dto.AuthResponse;
 import com.example.backend.entity.User;
 import com.example.backend.service.AuthService;
+import com.example.backend.security.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -42,6 +43,54 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    /**
+     * Validate JWT token and return user information.
+     * 
+     * @param token the JWT token to validate
+     * @return user information if token is valid
+     */
+    @PostMapping("/validate")
+    @Operation(summary = "Validate token", description = "Validate JWT token and return user information")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Token is valid",
+                    content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Invalid or expired token")
+    })
+    public ResponseEntity<AuthResponse> validateToken(
+            @Parameter(description = "JWT token", required = true)
+            @RequestHeader("Authorization") String authorization) {
+        
+        try {
+            String token = authorization.replace("Bearer ", "");
+            
+            if (jwtUtil.validateToken(token)) {
+                String email = jwtUtil.extractUsername(token);
+                Optional<User> userOpt = authService.getUserByEmail(email);
+                
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    AuthResponse response = new AuthResponse();
+                    response.setToken(token);
+                    response.setUserId(user.getId());
+                    response.setEmail(user.getEmail());
+                    response.setRole(user.getRole());
+                    response.setMessage("Token is valid");
+                    return ResponseEntity.ok(response);
+                }
+            }
+            
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponse("Invalid or expired token"));
+        } catch (Exception e) {
+            logger.warn("Token validation failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new AuthResponse("Invalid or expired token"));
+        }
+    }
 
     /**
      * Authenticate user and generate JWT token.
