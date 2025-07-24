@@ -6,8 +6,8 @@ A complete web application for managing products with user authentication and ad
 
 ```bash
 # Clone and start everything
-git clone <repository-url>
-cd code-challenge
+git clone git@github.com:christianotieno/product-catalog.git
+cd product-catalog
 make start
 
 # Open your browser
